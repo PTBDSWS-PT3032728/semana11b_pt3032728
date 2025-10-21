@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Flasky{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>E-mails enviados</h1>
+    <p>Relação de e-mails enviados para o administrador do sistema, notificando o cadastro de novos usuários.</p>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>De</th>
+                <th>Para</th>
+                <th>Assunto</th>
+                <th>Texto</th>
+                <th>Data/Hora</th>
+            </tr>
+        </thead>
+        <tbody>        
+            {% for mensage in mensagens %}
+            <tr>
+                <td>{{ mensage.De }}</td>
+                <td>{{ mensage.Para }}</td>
+                <td>{{ mensage.Assunto }}</td>
+                <td>{{ mensage.Texto }}</td>
+                <td>{{ mensage.Data_hora.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
