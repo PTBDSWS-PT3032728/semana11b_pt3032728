@@ -53,25 +53,21 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
     
-class Mensage(db.Model):
-    __tablename__ = 'mensages'
+class Message(db.Model):
+    __tablename__ = 'messages'
     id = db.Column(db.Integer, primary_key=True)
     De = db.Column(db.String(64))
     Para = db.Column(db.String(64))
     Assunto = db.Column(db.String(64))
     Texto = db.Column(db.String(64))
-    Data_hora = db.Column(db.DateTime, default=datetime.now)
-    users = db.relationship('User', backref='mensage', lazy='dynamic')
+    Data_hora = db.Column(db.String(21), index=True)
 
-    def __repr__(self):
-        return '<Mensage %r>' % self.Assunto
 
 class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    mensage_id = db.Column(db.Integer, db.ForeignKey('mensages.id'))
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -91,7 +87,7 @@ def send_email(to, subject, template, **kwargs):
     return thr
 
 def send_simple_message(to, subject, newUser):
-    print('Enviando mensagem (POST)...', flush=True)
+    print('Enviando Messagem (POST)...', flush=True)
     print('URL: ' + str(app.config['API_URL']), flush=True)
     print('api: ' + str(app.config['API_KEY']), flush=True)
     print('from: ' + str(app.config['API_FROM']), flush=True)
@@ -105,16 +101,16 @@ def send_simple_message(to, subject, newUser):
                                                                         "subject": app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + ' ' + subject, 
                                                                         "text": "Novo usuário cadastrado: " + newUser})
         
-    print('Enviando mensagem (Resposta)...' + str(resposta) + ' - ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), flush=True)
+    print('Enviando Messagem (Resposta)...' + str(resposta) + ' - ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), flush=True)
 
-    mensagem = Mensage(
-        Remetente=app.config.get('FLASKY_MAIL_SENDER', 'system'),
-        Para=','.join(to) if isinstance(to, (list, tuple)) else str(to),
-        Assunto=subject,
+    Message = Message(
+        De=newUser,
+        Para=str(to),
+        Assunto=str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject,
         Texto="Novo usuário cadastrado: " + newUser,
-        Data_hora=datetime.utcnow()   # armazenar objeto datetime
+        Data_hora=datetime.utcnow().strftime("%m/%d/%Y, %H:%M:%S")
     )
-    db.session.add(mensagem)
+    db.session.add(Message)
     db.session.commit()
     return resposta
 
@@ -164,13 +160,13 @@ def index():
             print('Confirmação do e-mail: ' + "Enviar e-mail para flaskaulasweb@zohomail.com? " + str(form.email.data), flush=True)
 
             if app.config['FLASKY_ADMIN']:
-                print('Enviando mensagem...', flush=True)
+                print('Enviando Messagem...', flush=True)
                 destinatarios = [app.config['FLASKY_ADMIN'], "ferreira.eduardo@aluno.ifsp.edu.br"]
                 if form.email.data == True:
                     destinatarios.append("flaskaulasweb@zohomail.com")
                 send_simple_message(destinatarios, 'Novo usuário', form.name.data)
                 #send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user=user)
-                print('Mensagem enviada...', flush=True)
+                print('Messagem enviada...', flush=True)
                 
         else:
             session['known'] = True
@@ -181,5 +177,5 @@ def index():
 
 @app.route("/emailsEnviados")
 def emails():
-    mensagens = Mensage.query.all()
-    return render_template('emails.html', mensagens=mensagens)
+    Messagens = Message.query.all()
+    return render_template('emails.html', Messagens=Messagens)
