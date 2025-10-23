@@ -17,13 +17,13 @@
             </tr>
         </thead>
         <tbody>        
-            {% for message in mensagens %}
+            {% for message in mensages %}
             <tr>
-                <td>{{ mensage.De }}</td>
-                <td>{{ mensage.Para | replace('[', '') | replace(']', '') }}</td>
-                <td>{{ mensage.Assunto }}</td>
-                <td>{{ mensage.Texto | replace('\n', '<br>') | safe }}</td>
-                <td>{{ mensage.Data_hora | replace(',', '') | safe }}</td>
+                <td>{{ message.De }}</td>
+                <td>{{ message.Para | replace('[', '') | replace(']', '') }}</td>
+                <td>{{ message.Assunto }}</td>
+                <td>{{ message.Texto | replace('\n', '<br>') | safe }}</td>
+                <td>{{ message.Data_hora | replace(',', '') | safe }}</td>
             </tr>
             {% endfor %}
         </tbody>

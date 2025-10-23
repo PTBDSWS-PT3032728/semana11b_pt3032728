@@ -1,4 +1,5 @@
 import os
+import sys
 from threading import Thread
 from flask import Flask, render_template, session, redirect, url_for
 from flask_bootstrap import Bootstrap
@@ -52,15 +53,6 @@ class Role(db.Model):
 
     def __repr__(self):
         return '<Role %r>' % self.name
-    
-class Message(db.Model):
-    __tablename__ = 'messages'
-    id = db.Column(db.Integer, primary_key=True)
-    De = db.Column(db.String(64))
-    Para = db.Column(db.String(64))
-    Assunto = db.Column(db.String(64))
-    Texto = db.Column(db.String(64))
-    Data_hora = db.Column(db.String(21), index=True)
 
 
 class User(db.Model):
@@ -72,6 +64,15 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
+
+class Message(db.Model):
+    __tablename__ = 'messages'
+    id = db.Column(db.Integer, primary_key=True)
+    De = db.Column(db.String(320), index=True)
+    Para = db.Column(db.String(320), index=True)
+    Assunto = db.Column(db.String(70), index=True)
+    Texto = db.Column(db.String(320), index=True)
+    Data_hora = db.Column(db.String(21), index=True)
 
 def send_async_email(app, msg):
     with app.app_context():
@@ -108,7 +109,7 @@ def send_simple_message(to, subject, newUser):
         Para=str(to),
         Assunto=str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject,
         Texto="Novo usuário cadastrado: " + newUser,
-        Data_hora=datetime.utcnow().strftime("%m/%d/%Y, %H:%M:%S")
+        Data_hora=datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     )
     db.session.add(Message)
     db.session.commit()
@@ -177,5 +178,5 @@ def index():
 
 @app.route("/emailsEnviados")
 def emails():
-    Messagens = Message.query.all()
-    return render_template('emails.html', Messagens=Messagens)
+    Messages = Message.query.all()
+    return render_template('emails.html', Messages=Messages)
