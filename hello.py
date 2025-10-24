@@ -104,13 +104,7 @@ def send_simple_message(to, subject, newUser):
         
     print('Enviando Messagem (Resposta)...' + str(resposta) + ' - ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), flush=True)
 
-    Message = Message(
-        De=newUser,
-        Para=str(to),
-        Assunto=str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject,
-        Texto="Novo usuário cadastrado: " + newUser,
-        Data_hora=datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
-    )
+    Message = Message(De=newUser, Para=str(to), Assunto=str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject, Texto="Novo usuário cadastrado: " + newUser, Data_hora=datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
     db.session.add(Message)
     db.session.commit()
     return resposta

@@ -17,7 +17,7 @@
             </tr>
         </thead>
         <tbody>        
-            {% for message in mensages %}
+            {% for message in Messages %}
             <tr>
                 <td>{{ message.De }}</td>
                 <td>{{ message.Para | replace('[', '') | replace(']', '') }}</td>
