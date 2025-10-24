@@ -5,18 +5,20 @@
 
 {% block page_content %}
 <div class="page-header">
-    <h1>Olá, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
+    <h1>Hello, {% if name %}{{ name }}{% else %}Stranger{% endif %}!</h1>
     {% if not known %}
-    <p>Prazer em conhecê-lo!</p>
-    <p>E-mail enviado para o <b>Administrador do sistema</b>, notificando o cadastro de um novo usuário.</p>
+        <p>Prazer em conhecê-lo!</p>
+    {% if envia_email %}
+        <p>E-mail enviado para o <b>Administrador do sistema</b>, notificando o cadastro de um novo usuário.</p>
+    {% endif %}
     {% else %}
-    <p>Feliz em vê-lo novamente!</p>    
+        <p>Feliz em vê-lo novamente!</p>
     {% endif %}
 </div>
 {{ wtf.quick_form(form) }}
 
-<h2>Relação de usuários cadastrados</h2>
 <table class="table">
+    <h2>Relação de usuários cadastrados</h2>
     <thead>
         <tr>
             <th>Nome do usuário</th>
@@ -24,13 +26,12 @@
         </tr>
     </thead>
     <tbody>
-        {% for key in user_all %}
+        {% for user in users %}
         <tr>
-            <td>{{ key.username }}</td>
-            <td>{{ key.role.name }}</td>            
+            <td>{{ user.username }}</td>
+            <td>{{ user.role.name }}</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
 {% endblock %}

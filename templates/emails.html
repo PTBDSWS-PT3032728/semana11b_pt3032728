@@ -3,10 +3,11 @@
 {% block title %}Flasky{% endblock %}
 
 {% block page_content %}
+
 <div class="page-header">
     <h1>E-mails enviados</h1>
     <p>Relação de e-mails enviados para o administrador do sistema, notificando o cadastro de novos usuários.</p>
-    <table class="table">
+    <table class='table'>
         <thead>
             <tr>
                 <th>De</th>
@@ -16,15 +17,15 @@
                 <th>Data/Hora</th>
             </tr>
         </thead>
-        <tbody>        
-            {% for message in Messages %}
-            <tr>
-                <td>{{ message.De }}</td>
-                <td>{{ message.Para | replace('[', '') | replace(']', '') }}</td>
-                <td>{{ message.Assunto }}</td>
-                <td>{{ message.Texto | replace('\n', '<br>') | safe }}</td>
-                <td>{{ message.Data_hora | replace(',', '') | safe }}</td>
-            </tr>
+        <tbody>
+            {% for i in Mensagens %}
+                <tr>
+                    <td>{{ i.remetente }}</td>
+                    <td>{{ i.destinatario | replace('[', '') | replace(']', '') }}</td>
+                    <td>{{ i.assunto }}</td>
+                    <td>{{ i.corpo | replace('\n', '<br>') | safe }}</td>
+                    <td>{{ i.data | replace(',', '') | safe }}</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>

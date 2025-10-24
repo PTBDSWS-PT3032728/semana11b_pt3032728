@@ -26,16 +26,7 @@ app.config['API_KEY'] = os.environ.get('API_KEY')
 app.config['API_URL'] = os.environ.get('API_URL')
 app.config['API_FROM'] = os.environ.get('API_FROM')
 
-'''
-app.config['MAIL_SERVER'] = 'smtp.zoho.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-'''
-
 app.config['FLASKY_MAIL_SUBJECT_PREFIX'] = '[Flasky]'
-app.config['FLASKY_MAIL_SENDER'] = 'flaskaulas@zohomail.com'
 app.config['FLASKY_ADMIN'] = os.environ.get('FLASKY_ADMIN')
 
 bootstrap = Bootstrap(app)
@@ -64,31 +55,17 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
-
-class Message(db.Model):
-    __tablename__ = 'messages'
+class Mensagem(db.Model):
+    __tablename__ = 'emails'
     id = db.Column(db.Integer, primary_key=True)
-    De = db.Column(db.String(320), index=True)
-    Para = db.Column(db.String(320), index=True)
-    Assunto = db.Column(db.String(70), index=True)
-    Texto = db.Column(db.String(320), index=True)
-    Data_hora = db.Column(db.String(21), index=True)
-
-def send_async_email(app, msg):
-    with app.app_context():
-        mail.send(msg)
-
-
-def send_email(to, subject, template, **kwargs):
-    msg = Message(app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + ' ' + subject,
-                  sender=app.config['FLASKY_MAIL_SENDER'], recipients=[to])    
-    msg.html = render_template(template + '.html', **kwargs)
-    thr = Thread(target=send_async_email, args=[app, msg])
-    thr.start()
-    return thr
+    remetente = db.Column(db.String(320), index=True)
+    destinatario = db.Column(db.String(320), index=True)
+    assunto = db.Column(db.String(70), index=True)
+    corpo = db.Column(db.String(320), index=True)
+    data = db.Column(db.String(21), index=True)
 
 def send_simple_message(to, subject, newUser):
-    print('Enviando Messagem (POST)...', flush=True)
+    print('Enviando mensagem (POST)...', flush=True)
     print('URL: ' + str(app.config['API_URL']), flush=True)
     print('api: ' + str(app.config['API_KEY']), flush=True)
     print('from: ' + str(app.config['API_FROM']), flush=True)
@@ -102,17 +79,22 @@ def send_simple_message(to, subject, newUser):
                                                                         "subject": app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + ' ' + subject, 
                                                                         "text": "Novo usuário cadastrado: " + newUser})
         
-    print('Enviando Messagem (Resposta)...' + str(resposta) + ' - ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), flush=True)
+    print('Enviando mensagem (Resposta)...' + str(resposta) + ' - ' + datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), flush=True)
 
-    Message = Message(De=newUser, Para=str(to), Assunto=str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject, Texto="Novo usuário cadastrado: " + newUser, Data_hora=datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
-    db.session.add(Message)
+    email = Email(
+        remetente = newUser, 
+        destinatario = str(to), 
+        assunto = str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']) + ' ' + subject, 
+        corpo = "Novo usuário cadastrado: " + newUser, 
+        data = datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))
+    db.session.add(email)
     db.session.commit()
     return resposta
 
 
 class NameForm(FlaskForm):
     name = StringField('Qual é o seu nome?', validators=[DataRequired()])
-    email = BooleanField('Deseja enviar e-mail para flaskaulasweb@zohomail.com?')
+    envia_email = BooleanField('Deseja enviar e-mail para flaskaulasweb@zohomail.com?')
     submit = SubmitField('Submit')
 
 
@@ -130,15 +112,19 @@ def page_not_found(e):
 def internal_server_error(e):
     return render_template('500.html'), 500
 
+@app.route('/emailsEnviados')
+def emailsEnviados():
+    mensagens = Mensagem.query.all()
+    return render_template('emails.html', Mensagens = mensagens)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
-    user_all = User.query.all()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.name.data).first()
+        user_role = Role.query.filter_by(name='User').first()
+        envia_email = form.envia_email.data
         if user is None:
-            user_role = Role.query.filter_by(name='User').first()
             user = User(username=form.name.data, role=user_role)
             db.session.add(user)
             db.session.commit()
@@ -149,28 +135,21 @@ def index():
             print('URL: ' + str(app.config['API_URL']), flush=True)
             print('api: ' + str(app.config['API_KEY']), flush=True)
             print('from: ' + str(app.config['API_FROM']), flush=True)
-            print('to: ' + str([app.config['FLASKY_ADMIN'], "flaskaulasweb@zohomail.com", "ferreira.eduardo2@aluno.ifsp.edu.br"]), flush=True)
+            print('to: ' + str([app.config['FLASKY_ADMIN']]), flush=True)
             print('subject: ' + str(app.config['FLASKY_MAIL_SUBJECT_PREFIX']), flush=True)
             print('text: ' + "Novo usuário cadastrado: " + form.name.data, flush=True)
-            print('Confirmação do e-mail: ' + "Enviar e-mail para flaskaulasweb@zohomail.com? " + str(form.email.data), flush=True)
 
-            if app.config['FLASKY_ADMIN']:
-                print('Enviando Messagem...', flush=True)
-                destinatarios = [app.config['FLASKY_ADMIN'], "ferreira.eduardo@aluno.ifsp.edu.br"]
-                if form.email.data == True:
-                    destinatarios.append("flaskaulasweb@zohomail.com")
-                send_simple_message(destinatarios, 'Novo usuário', form.name.data)
-                #send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user=user)
-                print('Messagem enviada...', flush=True)
-                
+            if app.config['FLASKY_ADMIN']:                
+                print('Enviando mensagem...', flush=True)
+                if envia_email:
+                    send_simple_message([app.config['FLASKY_ADMIN'], "flaskaulasweb@zohomail.com", "ferreira.eduardo2@aluno.ifsp.edu.br"], 'Novo usuário', form.name.data)
+                else:
+                    send_simple_message([app.config['FLASKY_ADMIN']], 'Novo usuário', form.name.data)
+                print('Mensagem enviada...', flush=True)
         else:
             session['known'] = True
         session['name'] = form.name.data
-        return redirect(url_for('index')) # Aciona o método index() novamente, mas agora com o método GET
+        return redirect(url_for('index'))
     return render_template('index.html', form=form, name=session.get('name'),
-                           known=session.get('known', False), user_all=user_all)
-
-@app.route("/emailsEnviados")
-def emails():
-    Messages = Message.query.all()
-    return render_template('emails.html', Messages=Messages)
+                           known=session.get('known', False), envia_email=session.get('envia_email', False),
+                           users=User.query.all(), roles=Role.query.all())
